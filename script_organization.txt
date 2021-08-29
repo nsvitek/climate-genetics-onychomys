@@ -1,0 +1,57 @@
+R script map: Onychomys leugocaster analyses
+
+########################
+### Pre-Analysis     ###
+### Process GIS data ###
+	
+GIS_10-year-mean-phenology_make.R [takes the 10 yr average of eMODIS data, only needs to be done once after data are downloaded]
+
+GIS_base.R [makes oleu_environemnt.csv, the environmental/geographic data] 
+	|_ GIS_specimens_oleu.R [makes cleaned coordinates for specimens]
+	|_ GIS_map-load.R 	[loads all of the raster environment maps for each variable: eats memory: do this part on a powerful computer]
+
+### Process genetic data ###
+oleu_base_cluster.R [read in metadata]
+	|_ oleu_gen.R [read in x, the raw genetic SNP data]
+		|_oleu_gen_fst.R [writes pairwise Fst tables at (A) genetic group and (B) populations levels for each level of missing data, plus global Fst stats
+		|_oleu_gen_none_missing.R [writes "snps.missing.interpolated.csv" for each level of missing data]
+
+########################
+### Analysis		 ###
+
+	|- MMRR.R [dependency]
+	|- oleu_pst_fst_functions.R [dependency]
+oleu_base.R [read in metadata, genetic data]
+	|_ oleu_phenotype.R [makes shapes, also ran error]
+		|_ oleu_linear error.R 
+		|_ oleu_error.R
+	|_ oleu_map.R	[makes Fig of map, Table  of specimen sample size]
+	|_ oleu_environment.R [make env.block, PCA.environment, PCA.phenotype]
+		|_ oleu_PCA_non_gen.R [reporting of PCA figs, data]
+	| [standardize blocks and block names]
+--------- [will need to repeat this for phenotype options]
+		|_ oleu_disparity.R
+--------- [will need to repeat this for levels of mdat] 
+			|_ oleu_PCA_gen.R [genetic PCA, figure]
+			|_ oleu_PLS.R [2B-PLS: using snps vs. scaled environment vs. 2 versions of phenotype
+			|_ oleu_distances.R [MMRR and scaling]
+				|_ oleu_visualize_pops.R [optional, just for figuring predicted shapes]
+			|_ oleu_pst_fst.R [PST/FST comparisons]
+	
+	
+###### temporary planning #########
+As of deciding on a phenotypic block, 
+write each block as a csv file.
+Also write each PCA.genotype block as a csv file.
+put into the folder structure
+upload the folder structure to the cluster
+then create a cluster_base.R file that reads in the csvs, settings, dependencies for cluster
+and run the 10 versions of all the analyses on the cluster
+
+
+GOO-lehd Ali: YouTube -- check it out!
+
+Mono: 2x fossil story, fish: pupfish, Owen's Valley, troug: Walker, Pyramid Lake. No precise chronology for spillage/connections
+
+when the lake spills over, carve spillover channel, but very short. wettest: last glaciation: abruptly gastropods.
+
