@@ -9,6 +9,7 @@ group.means<-function(sample.morph, subpop.choice, subpop.vector){
   return(subpop.means)
 }
 
+#calculates SSW, or sum of squared distances between individuals and their group mean (Polly 2007)
 dist.individual.subpop<-function(sample.morph, subpop.options, subpop.choice, subpop.vector){
   temp.match<-which(subpop.vector==subpop.choice) #find only the individuals in the subpopulation
   temp.pop<-sample.morph[temp.match,] %>% #take morphology from those individuals
@@ -18,16 +19,18 @@ dist.individual.subpop<-function(sample.morph, subpop.options, subpop.choice, su
     as.matrix() %>% #make sure it stays in matrix format so you can pull rows
     .[nrow(temp.pop),1:(nrow(temp.pop)-1)] #and take just the last row, which should be distances from mean
   return(dist.individual2subpop.mean)
-  # #comparing to Pstst equation:
+  # #comparing to Pst equation:
   # #if variance is (dist^2 %>% sum) / (n-1) and then you multiply by (n-1)
   # #you are left with (dist^2 %>% sum), where distance is distance of individuals from total mean
   # temp.match<-which(critters$population %in% pair)
   # temp.pop<-sample.morph[temp.match,] %>% as.matrix %>% rbind(.,grand.mean)
   # dist.ig<-dist(temp.pop) %>% as.matrix() %>% .[nrow(temp.pop),1:(nrow(temp.pop)-1)] #%>% .^2 *n.each[i]
   # SST<-(dist.ig^2) %>% sum
-  # SSW2<-SST-SSB #is the same as SSW. This seems good. Too tired to know why.
+  # SSW2<-SST-SSB #is the same as SSW. This seems good. 
 }
 
+#calculates SSB, or sum of squared distances between group means and grand mean (Polly 2007), as well as
+#pulling dist.individual.subpop to calculate SSW and the n, k variables you need for eq. 1 of Polly 2007
 partition.distance<-function(sample.morph,subpop.vector,subpop.set){
   #shortening step: make object for the vector of possible subpopulations:
   pop.options<-unique(subpop.vector)
@@ -62,6 +65,7 @@ genetic.components.variance<-function(add.gen.proportion,h.squared,n,k,SSB,SSW){
   names(result)<-c("V.among","V.within")
   return(result)
 }
+
 
 pst.equation<-function(add.gen.proportion,h.squared,n,k,SSB,SSW){
   #do the Pst calculation. 

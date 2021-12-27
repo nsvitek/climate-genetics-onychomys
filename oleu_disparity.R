@@ -14,6 +14,8 @@
 #
 ############################################################################
 
+#note: this is the same measure of distance used to calculate the distances between specimens/groups 
+#in Pst calculations (see oleu_pst_fst_functions.R)
 individual.disparity <- function(d) {
   dists <-( dist(d))^2
   return(mean(dists))
@@ -80,7 +82,7 @@ random.group.disparity<-group.disp
 
 #created an empty matrix for random population-level individual disparity distribution
 random.pop.disparity<-matrix(data=NA,nrow=length(pop.indv.disp),ncol=nperm+1,dimnames=list(c(levels(var.factor))))
-#make the first column the observd values
+#make the first column the observed values
 random.pop.disparity[,1]<-pop.indv.disp
 
 #randomly resample total mouse sample to populations with same original population sample size
