@@ -34,24 +34,9 @@ oleu_base.R [read in metadata, genetic data]
 --------- [will need to repeat this for levels of mdat] 
 			|_ oleu_PCA_gen.R [genetic PCA, figure]
 			|_ oleu_PLS.R [2B-PLS: using snps vs. scaled environment vs. 2 versions of phenotype
-			|_ oleu_distances.R [MMRR and scaling]
+			|_ oleu_distances.R [MMRR and scaling; this one is now in the set of scripts submitted to the cluster]
 				|_ oleu_visualize_pops.R [optional, just for figuring predicted shapes]
 			|_ oleu_pst_fst.R [PST/FST comparisons]
 	
 	
-###### temporary planning #########
-As of deciding on a phenotypic block, 
-write each block as a csv file.
-Also write each PCA.genotype block as a csv file.
-put into the folder structure
-upload the folder structure to the cluster
-then create a cluster_base.R file that reads in the csvs, settings, dependencies for cluster
-and run the 10 versions of all the analyses on the cluster
-
-
-GOO-lehd Ali: YouTube -- check it out!
-
-Mono: 2x fossil story, fish: pupfish, Owen's Valley, troug: Walker, Pyramid Lake. No precise chronology for spillage/connections
-
-when the lake spills over, carve spillover channel, but very short. wettest: last glaciation: abruptly gastropods.
 

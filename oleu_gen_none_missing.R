@@ -1,5 +1,5 @@
 #Make dataset for PCA, PLS
-#handle missing data by replacing with either mean allele frequencies or zeo
+#handle missing data by replacing with either mean allele frequencies or zero
 
 Y = x
 Y@tab<-tab(Y,NA.method="zero")

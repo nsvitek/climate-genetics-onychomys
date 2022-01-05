@@ -1,7 +1,7 @@
 #calculate Fst with bootstrapped confidence interval
 #relies on objects and libraries in oleu_gen.R
 
-# # weir-cockerham estimator assigner -----
+# # weir-cockerham estimator using assigner package [explored, not used in reporte results] -----
 # # if (!require("devtools")) install.packages("devtools")
 # # devtools::install_github("thierrygosselin/assigner")
 # # library(assigner)
@@ -20,7 +20,7 @@
 #   verbose = TRUE
 # )
 
-# compare to Hierfstat -------
+# compare to Hierfstat [route used for reported Fst results] -------
 #open previously saved results and compare to these:
 
 #convert format into genetic data frame

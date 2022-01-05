@@ -3,15 +3,18 @@ print(paste("r = ",mdat,sep = ""))
 
 # calculate individual  distances -------
 #genetic distance as PCA distance
-pw.gen<-dist(PCA.gen,diag=TRUE,upper=TRUE) %>% as.matrix
+# pw.gen<-dist(PCA.gen,diag=TRUE,upper=TRUE) %>% as.matrix
 pw.morph<-dist(mor.block,method="euclidean",diag=TRUE,upper=TRUE) %>% as.matrix
 pw.env<-dist(env.block,method="euclidean",diag=TRUE,upper=TRUE) %>% as.matrix
 pw.geo<-distm(cbind(geo.block$decimallongitude, geo.block$decimallatitude),
               fun=distVincentyEllipsoid)
 row.names(pw.geo)<-colnames(pw.geo)<-row.names(geo.block)
 
+#POST-REVIEW: suggested change
+#population genetic distance should be complete, not PCA distances
+pw.gen<-dist(gen.block,diag=TRUE,upper=TRUE) %>% as.matrix
+
 # calculate population distances -----
-#population genetic distanceshould be pairwise Fst, not PCA distances
 
 # #fiddly renaming, reorganizing
 # cbind(colnames(fst.pairwise.wc),levels(factor(metadata$population))[c(1,4,7,9,3,5,6,8,11,2,10)])
@@ -113,36 +116,36 @@ plot1<-ggplot(data=dist.indv,aes(x=genetic,y=shape)) +
   geom_point(data=dist.indv[pick.w,],color=ex.cols[5],shape=17,size=1) +
   geom_point(data=dist.indv[pick.r,],color=ex.cols[2],shape=17,size=1) +
   geom_point(data=dist.indv[pick.g,],color=ex.cols[4],shape=17,size=1) +
-  geom_smooth(method=lm, se=FALSE) + 
+  # geom_smooth(method=lm, se=FALSE) + 
   theme_classic()
-ggsave(paste(outputdir.choice,"/dist_gen_mor.pdf", sep=""),plot1,  device = pdf, width = 8, height = 8,units="cm",dpi=600)
+ggsave(filename=paste(outputdir.choice,"/dist_gen_mor.pdf", sep=""),plot1,  width = 8, height = 8,units="cm",dpi=600)
 
 plot2<-ggplot(data=dist.indv,aes(x=environment,y=shape)) + 
   geom_point(alpha=0.3,shape=16,size=0.5) +  
   geom_point(data=dist.indv[pick.w,],color=ex.cols[5],shape=17,size=1) +
   geom_point(data=dist.indv[pick.r,],color=ex.cols[2],shape=17,size=1) +
   geom_point(data=dist.indv[pick.g,],color=ex.cols[4],shape=17,size=1) +
-  geom_smooth(method=lm, se=FALSE) + 
+  # geom_smooth(method=lm, se=FALSE) + 
   theme_classic()
-ggsave(paste(outputdir.choice,"/dist_env_mor.pdf", sep=""), plot2, device = pdf, width = 8, height = 8,units="cm",dpi=600)
+ggsave(paste(outputdir.choice,"/dist_env_mor.pdf", sep=""), plot2, width = 8, height = 8,units="cm",dpi=600)
 
 plot3<-ggplot(data=dist.indv,aes(x=geography,y=shape)) + 
   geom_point(alpha=0.3,shape=16,size=0.5) +  
   geom_point(data=dist.indv[pick.w,],color=ex.cols[5],shape=17,size=1) +
   geom_point(data=dist.indv[pick.r,],color=ex.cols[2],shape=17,size=1) +
   geom_point(data=dist.indv[pick.g,],color=ex.cols[4],shape=17,size=1) +
-  geom_smooth(method=lm, se=FALSE) + 
+  # geom_smooth(method=lm, se=FALSE) + 
   theme_classic()
-ggsave(paste(outputdir.choice,"/dist_geo_mor.pdf", sep=""),plot3, device = pdf, width = 8, height = 8,units="cm",dpi=600)
+ggsave(paste(outputdir.choice,"/dist_geo_mor.pdf", sep=""),plot3, width = 8, height = 8,units="cm",dpi=600)
 
 plot4<-ggplot(data=dist.indv,aes(x=geography,y=genetic)) + 
   geom_point(alpha=0.3,shape=16,size=0.5) +  
   geom_point(data=dist.indv[pick.w,],color=ex.cols[5],shape=17,size=1) +
   geom_point(data=dist.indv[pick.r,],color=ex.cols[2],shape=17,size=1) +
   geom_point(data=dist.indv[pick.g,],color=ex.cols[4],shape=17,size=1) +
-  geom_smooth(method=lm, se=FALSE) + 
+  # geom_smooth(method=lm, se=FALSE) + 
   theme_classic()
-ggsave(paste(outputdir.choice,"/dist_geo_gen.pdf", sep=""), plot4, device = pdf, width = 8, height = 8,units="cm",dpi=600)
+ggsave(paste(outputdir.choice,"/dist_geo_gen.pdf", sep=""), plot4, width = 8, height = 8,units="cm",dpi=600)
 
 # # compare mean shapes of sample areas, genetic groups -----
 # source(paste(scriptsdir,"/oleu_visualize_pops.R",sep=""))

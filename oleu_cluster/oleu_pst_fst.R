@@ -1,8 +1,8 @@
 #Pst:Fst analyses: In two forms: Pst-Fst across populations, and a pairwise matrix-based approach
 
-sink(paste(outputdir.choice,"/PstFst_output_md",mdat,"_h",h.squared,"_agp",add.gen.proportion,"_",phenotype.option,".txt",sep=""))
-print(paste("r = ",mdat,", h.squared = ",h.squared,", c (proportion additive genetic variation) = ",
-            add.gen.proportion,sep = ""))
+# sink(paste(outputdir.choice,"/PstFst_output_md",mdat,"_h",h.squared,"_agp",add.gen.proportion,"_",phenotype.option,".txt",sep=""))
+# print(paste("r = ",mdat,", h.squared = ",h.squared,", c (proportion additive genetic variation) = ",
+#             add.gen.proportion,sep = ""))
 # Fst Weir-Cockerham --------
 #take the pair-column structure and reorganize into a distance matrix structure
 
