@@ -93,9 +93,11 @@ fst.pairwise.wc[cbind(i,j)] <- fst.pairwise.wc[cbind(j,i)] <- pop.combo.wc$FST
 
 #Pst variables
 h2.levels<-seq(from=0.1, to=0.9, by=0.1)
-h.squared<-h2.levels[5] #initial estimate to model PDP's Pst
+h.squared<-h2.levels[5] #set at 0.5 for code development
 add.gen.proportion<-0.25 #c, assumed additive genetic proportion of differences between populations
-
+#the idea from Brommer 2011 is that any time c > h.squared your estimate is anti-conservative, especially if Pst>Fst
+#so you might want to start with the null, c = h.squared
+#but also see what happens when you alter both sides of the assumption -- plot as a surface? 
 #try with the starting settings chosen above
 source(paste(datadir,"/oleu_pst_fst.R",sep=""))
 

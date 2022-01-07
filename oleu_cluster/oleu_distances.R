@@ -109,40 +109,42 @@ wb.critters<-metadata$filename[which(metadata$gengroup=="wb")]
 pick.w<-which((! dist.indv$X1 %in% wb.critters & dist.indv$X2 %in% wb.critters)|
                 (dist.indv$X1 %in% wb.critters & ! dist.indv$X2 %in% wb.critters))
 
-ex.cols<-GetColors(5,scheme="bright")
+# ex.cols<-GetColors(5,scheme="bright")
+## Post-Review: change colors in to more closely match colors in PCA plot
+PCA_cols<-hue_pal()(length(unique(metadata$`Sampling Area`)))
 
 plot1<-ggplot(data=dist.indv,aes(x=genetic,y=shape)) + 
   geom_point(alpha=0.3,shape=16,size=0.5) +  
-  geom_point(data=dist.indv[pick.w,],color=ex.cols[5],shape=17,size=1) +
-  geom_point(data=dist.indv[pick.r,],color=ex.cols[2],shape=17,size=1) +
-  geom_point(data=dist.indv[pick.g,],color=ex.cols[4],shape=17,size=1) +
-  # geom_smooth(method=lm, se=FALSE) + 
+  geom_point(data=dist.indv[pick.w,],color=PCA_cols[2],shape=15,size=1) + # 2 is Carbon sampling area
+  geom_point(data=dist.indv[pick.r,],color=PCA_cols[8],shape=17,size=1) +  # 8 is Roosevelt
+  geom_point(data=dist.indv[pick.g,],color=PCA_cols[4],shape=16,size=1) +  # 4 is Grand
+  geom_smooth(method=lm, se=FALSE) +
   theme_classic()
 ggsave(filename=paste(outputdir.choice,"/dist_gen_mor.pdf", sep=""),plot1,  width = 8, height = 8,units="cm",dpi=600)
 
 plot2<-ggplot(data=dist.indv,aes(x=environment,y=shape)) + 
   geom_point(alpha=0.3,shape=16,size=0.5) +  
-  geom_point(data=dist.indv[pick.w,],color=ex.cols[5],shape=17,size=1) +
-  geom_point(data=dist.indv[pick.r,],color=ex.cols[2],shape=17,size=1) +
-  geom_point(data=dist.indv[pick.g,],color=ex.cols[4],shape=17,size=1) +
-  # geom_smooth(method=lm, se=FALSE) + 
+  geom_point(data=dist.indv[pick.w,],color=PCA_cols[2],shape=15,size=1) + # 2 is Carbon sampling area
+  geom_point(data=dist.indv[pick.r,],color=PCA_cols[8],shape=17,size=1) +  # 8 is Roosevelt
+  geom_point(data=dist.indv[pick.g,],color=PCA_cols[4],shape=16,size=1) +  # 4 is Grand
+  geom_smooth(method=lm, se=FALSE) +
   theme_classic()
 ggsave(paste(outputdir.choice,"/dist_env_mor.pdf", sep=""), plot2, width = 8, height = 8,units="cm",dpi=600)
 
 plot3<-ggplot(data=dist.indv,aes(x=geography,y=shape)) + 
   geom_point(alpha=0.3,shape=16,size=0.5) +  
-  geom_point(data=dist.indv[pick.w,],color=ex.cols[5],shape=17,size=1) +
-  geom_point(data=dist.indv[pick.r,],color=ex.cols[2],shape=17,size=1) +
-  geom_point(data=dist.indv[pick.g,],color=ex.cols[4],shape=17,size=1) +
-  # geom_smooth(method=lm, se=FALSE) + 
+  geom_point(data=dist.indv[pick.w,],color=PCA_cols[2],shape=15,size=1) + # 2 is Carbon sampling area
+  geom_point(data=dist.indv[pick.r,],color=PCA_cols[8],shape=17,size=1) +  # 8 is Roosevelt
+  geom_point(data=dist.indv[pick.g,],color=PCA_cols[4],shape=16,size=1) +  # 4 is Grand
+  geom_smooth(method=lm, se=FALSE) +
   theme_classic()
 ggsave(paste(outputdir.choice,"/dist_geo_mor.pdf", sep=""),plot3, width = 8, height = 8,units="cm",dpi=600)
 
 plot4<-ggplot(data=dist.indv,aes(x=geography,y=genetic)) + 
   geom_point(alpha=0.3,shape=16,size=0.5) +  
-  geom_point(data=dist.indv[pick.w,],color=ex.cols[5],shape=17,size=1) +
-  geom_point(data=dist.indv[pick.r,],color=ex.cols[2],shape=17,size=1) +
-  geom_point(data=dist.indv[pick.g,],color=ex.cols[4],shape=17,size=1) +
+  geom_point(data=dist.indv[pick.w,],color=PCA_cols[2],shape=15,size=1) + # 2 is Carbon sampling area
+  geom_point(data=dist.indv[pick.r,],color=PCA_cols[8],shape=17,size=1) +  # 8 is Roosevelt
+  geom_point(data=dist.indv[pick.g,],color=PCA_cols[4],shape=16,size=1) +  # 4 is Grand
   # geom_smooth(method=lm, se=FALSE) + 
   theme_classic()
 ggsave(paste(outputdir.choice,"/dist_geo_gen.pdf", sep=""), plot4, width = 8, height = 8,units="cm",dpi=600)

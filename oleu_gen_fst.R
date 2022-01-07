@@ -1,7 +1,7 @@
 #calculate Fst with bootstrapped confidence interval
 #relies on objects and libraries in oleu_gen.R
 
-# # weir-cockerham estimator using assigner package [explored, not used in reporte results] -----
+# # weir-cockerham estimator using assigner package [explored, not used in reported results] -----
 # # if (!require("devtools")) install.packages("devtools")
 # # devtools::install_github("thierrygosselin/assigner")
 # # library(assigner)
@@ -20,9 +20,7 @@
 #   verbose = TRUE
 # )
 
-# compare to Hierfstat [route used for reported Fst results] -------
-#open previously saved results and compare to these:
-
+# Fst in Hierfstat [route used for reported Fst results] -------
 #convert format into genetic data frame
 x.df<-genind2hierfstat(x,pop=x@pop)
 
@@ -36,6 +34,10 @@ global.stat.gg<-wc(x.df.gg)
 #bootstrap for confidence interval
 global.fst.boot<-boot.vc(levels=x.df[,1], loci=x.df[,-1], nboot = resample)
 global.fst.boot.gg<-boot.vc(levels=x.df.gg[,1], loci=x.df.gg[,-1], nboot = resample)
+
+#note: If you want to check to make sure the hierarchical Fst is working the way you want,
+#look at the individual components of variance
+hierarchical.fst<-varcomp.glob(data.frame(metadata$`Genetic Group`,metadata$`Sampling Area`),x.df[,-1])
 
 #write using format FST	STRATA CI_LOW	CI_HIGH , matching assigner results as closely as possible
 sample.area<-c(global.stat$FST,"Sample.Area",global.fst.boot$ci[1,2],global.fst.boot$ci[3,2])
@@ -80,4 +82,11 @@ write.table(dist.pop,paste(datadir,gen_path_name,'/pairwise.fst.tsv',sep=""),
 
 write.table(dist.gg,paste(datadir,gen_path_name,'/pairwise.fst.geneticgroups.tsv',sep=""),
             quote=FALSE, sep="  ",row.names=FALSE)
+
+#write the hierarchical Fst data. All of it so that you can get Fst values for each locus as well as any other numbers
+#you might want to use to modify the hierarchy later. 
+saveRDS(hierarchical.fst,paste(datadir,gen_path_name,'/hierarchical.fst.rds',sep="") )
+# hierarchical Fst -----
+
+
 

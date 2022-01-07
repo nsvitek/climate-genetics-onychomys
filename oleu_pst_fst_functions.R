@@ -1,208 +1,114 @@
 #functions for calculating Pst and Fst
 # # Post-Review Revised Functions -------
 # Both Fst and Pst will be calculated using the same underlying equation, for comparability. 
-# Numerator: sig^2B 
-# Denominator: sig^2B + sig^2W
-#where  B is for variance between groups
-#and W is for genetic variance within groups
-
-#To calculate sig^2 (variance), remember from basic stats: variance = average squared differences from the mean 
-#(divided by N-1 instead of N for real world samples)
-
-#function to calculate group means
-group.means<-function(data, subpop.choice, subpop.vector){
-  temp.match<-which(subpop.vector==subpop.choice) #find only the individuals in the subpopulation
-  subpop.means<-data[temp.match,] %>% #take morphology from those individuals
-    as.matrix(.,nrow=length(temp.match)) %>% #make sure it stays in matrix format (for unidimensional measures)
-    colMeans
-  return(subpop.means)
+pst.equation<-function(add.gen.proportion,h.squared,v.between,v.within){
+  #Should look like the Fst hierarchial functions, but with additive genetic corrections
+  # Pst.gg<-vpGG*c / (vpGG*c+ vpSA + vpIN) #an example for 2 hierarchical levels
+  # Pst.sa<-vpSA*c / (vpSA*c + 2*h.squared*vpIN)
+  # c = add.gen.proportion = proportion of total variance presumed to be because of additive genetic effects across populations (Brommer 2011)
+  # h.squared = heritability
+  # v.between = variance component from desired between-group level of hierarchy
+  # v.within = variance component from desired within-group level of hierarchy (often sum of lower levels)
+  #do the Pst calculation.combined equation:
+  # Numerator: c * variance.between
+  # Denominator: c * variance.between + h.squared  * 2 * variance.within
+  V.among<-add.gen.proportion * v.between
+  V.within<-h.squared * v.within
+  Pst<-V.among/(V.among + 2 * V.within) #identical answer to Pstat, but can now do multidimensional distance!
+  return(Pst)
 }
 
-#calculates SSW, or sum of squared distances between individuals and their group mean
-dist.individual.subpop<-function(sample.morph, subpop.options, subpop.choice, subpop.vector){
-  temp.match<-which(subpop.vector==subpop.choice) #find only the individuals in the subpopulation
-  temp.pop<-sample.morph[temp.match,] %>% #take morphology from those individuals
-    as.matrix #make sure it stays in matrix format (for unidimensional measures)
-  temp.pop<-rbind(temp.pop,colMeans(temp.pop)) #add subpop.mean to the end
-  dist.individual2subpop.mean<-dist(temp.pop,method="euclidean") %>% #calculate distances
-    as.matrix() %>% #make sure it stays in matrix format so you can pull rows
-    .[nrow(temp.pop),1:(nrow(temp.pop)-1)] #and take just the last row, which should be distances from mean
-  return(dist.individual2subpop.mean)
-  # #comparing to Pst equation:
-  # #if variance is (dist^2 %>% sum) / (n-1) and then you multiply by (n-1)
-  # #you are left with (dist^2 %>% sum), where distance is distance of individuals from total mean
-  # temp.match<-which(critters$population %in% pair)
-  # temp.pop<-sample.morph[temp.match,] %>% as.matrix %>% rbind(.,grand.mean)
-  # dist.ig<-dist(temp.pop) %>% as.matrix() %>% .[nrow(temp.pop),1:(nrow(temp.pop)-1)] #%>% .^2 *n.each[i]
-  # SST<-(dist.ig^2) %>% sum
-  # SSW2<-SST-SSB #is the same as SSW. This seems good.
+#Alter Lind et al. approach to match the hierarchical checks below (taking mean of by-locus Fst does not give the correct value)
+#per.locus.variance is a matrix structured like the $loc output of hierfstat package's varcomp.glob() function
+#For now, function is tailored to a particular dataset and hierarchy, but could be modified to be more general.
+resample.Fst<-function(per.locus.variance,n.loci = nrow(per.locus.variance)){
+  rows2sample<-(sample(n.loci,replace=T))
+  resampled.loci<-per.locus.variance[rows2sample,]
+  vGG<-apply(resampled.loci,2,sum)[1]
+  vSA<-apply(resampled.loci,2,sum)[2]
+  vIN<-apply(resampled.loci,2,sum)[3]
+  vER<-apply(resampled.loci,2,sum)[4]
+  Fst.GG<-vGG/(vGG + vSA + vIN + vER)
+  Fst.SA<-vSA/(vSA + vIN + vER)
+  return(c(Fst.GG,Fst.SA))
 }
 
-#calculates SSB, or sum of squared distances between group means and grand mean (Polly 2007), as well as
-#pulling dist.individual.subpop to calculate SSW and the n, k variables you need for eq. 1 of Polly 2007
-partition.distance<-function(sample.morph,subpop.vector,subpop.set){
-  #shortening step: make object for the vector of possible subpopulations:
-  pop.options<-unique(subpop.vector)
-  k<-length(subpop.set) #total number of groups/subpopulations
-  n<-which(subpop.vector %in% subpop.set) %>% length #total sample size
-  n.each<-sapply(subpop.set, function(x) which(subpop.vector %in% x) %>% length) #sample size for each group
-  grand.mean<-sample.morph[which(subpop.vector %in% subpop.set),] %>% as.matrix %>% colMeans #calculate grand mean
-  #lapply not working, try a for loop instead
-  subpop.means.pops<-matrix(0, nrow=k, ncol=ncol(sample.morph))
-  for (i in 1:k){
-    subpop.means.pops[i,]<-group.means(sample.morph, subpop.set[i], subpop.vector)
-  }
-  subpop.means<-rbind(subpop.means.pops,grand.mean) #add grand mean to the bottom of the matrix
-  dist.group.grand<-dist(subpop.means,method="euclidean") %>% #calculate euclidean distances
-    as.matrix() %>% #keep in matrix format so you can pull rows
-    .[nrow(subpop.means),1:(nrow(subpop.means)-1)] #take last row, which should be distances from grand mean
-  #SSB: sum of squared distances between group means and the grand mean
-  SSB<-(dist.group.grand^2 * n.each) %>% sum
-  #SSW: sum of squared distances between individuals and their group mean
-  SSW<-sapply(subpop.set,function(x) dist.individual.subpop(sample.morph,pop.options,x,subpop.vector)) %>% #get distances
-    unlist %>% #make into a single vector
-    .^2 %>% sum #square and sum to get sum of squares.
-  result<-list(n,k,SSB,SSW)
-  names(result)<-c("n","k","SSB","SSW")
-  return(result)
+simulate.Pst.Fst<-function(add.gen.proportion,var.comp.within,df.within,df.between,observed.Fst){
+  #Step 2: construct a distribution for Va (additive genetic variance within populations) by 
+  #multiplying it by a random number from a chi-squared distribution with the appropriate df
+  #in the Pst world, Va = h.squared * V-p,within (within-population phenotypic variance component)
+  #in an ANOVA-based framework, V-p,within = MS-residuals or individuals
+  # Va.hat<-Va/df.within*rchisq(1,df=df.within) #Lind et al. version of this step
+  v.within.hat<- var.comp.within / df.within * rchisq(1,df=df.within)
+  #Step 3: estimate V-g,among by algebraically reorganizing the Qst formula assuming Qst=Fst (null hypothesis) 
+  #and therefore making V-g,among [which is c*V-p,among in Pst world) equal to 2*Fst*V-a,within/(1-Fst). 
+  #And then multiply that whole value by a random number for a chi-square distribution with df = number of populations - 1
+  #In the Pst world, Vg = Vg*c, so might be good to include it here. 
+  #Lind et al. version of this step
+  # Vpop<-2*Global.Fst*Va/(1-Global.Fst) 
+  # Vpop.hat<-Vpop/df.pop*rchisq(1,df.pop)
+  v.between<- 2 * observed.Fst * var.comp.within / (1 - observed.Fst)
+  v.between.hat<- v.between / df.between * rchisq(1,df.between)
+  #Step 4: Use values from Steps 1-3 calculate a new, hypothetical Qst, and subtract it from the observed global Fst
+  #Lind et al. version of this step
+  # Qst<-Vpop.hat/(Vpop.hat+2*Va.hat) #estimated Qst value
+  # return(Qst-Global.Fst)
+  Qst.estimated<-v.between.hat / (v.between.hat + 2 * v.within.hat)
+  return(Qst.estimated - observed.Fst)
 }
 
-pst.equation<-function(add.gen.proportion,h.squared,n,k,SSB,SSW){
-  #do the Pst calculation.
-  #combined equation
-  # Numerator: c * SSB/(k-1)
-  # Denominator: c * SSB/(k-1) + h.squared  * 2 * SSW/(n-k)
-  #SSW divided by n-k according to Pstat package function. Reason related to df?
-  #a form closer to Psts package (but algebraically equivalent) is:
-  # Numerator: c/h.squared * SSB/(k-1), or V.among
-  # Denominator: c/h.squared * SSB/(k-1) + 2* SSW/(n-k), or V.among + V.within
-  V.among<-add.gen.proportion * SSB/(k-1)
-  V.within<-h.squared * SSW/(n-k)
-  pst.est<-V.among/(V.among + 2 * V.within) #identical answer to Pstat, but can now do multidimensional distance!
-  return(pst.est)
-}
 
-Pst<-function(sample.morph,add.gen.proportion,h.squared,subpop.vector,subpop.set){
-  pd<-partition.distance(sample.morph,subpop.vector,subpop.set)
-  pst<-pst.equation(add.gen.proportion,h.squared,pd[[1]],pd[[2]],pd[[3]],pd[[4]])
-  return(pst)
-}
+# TO BE REMOVED: Lind et al. 2011 code, for reference and checking -------------
+# The example below is written by, and uses data from, Lind MI, PK Ingvarsson, H Johansson, D Hall, and F Johansson. 2010. "Gene flow and selection on phenotypic plasticity in an island system of Rana temporaria." Evolution
+# From Supplementary file 1. R code used for simulating the distribution of Qst-Fst for a neutral trait, and estimating the quantile of the simulated distribution that has more extreme values than the observed value of Qst-Fst. For more information on the theoretical foundations, see Whitlock & Guillaume (2009).
+#  https://doi.org/10.1111/j.1558-5646.2010.01122.x
 
-Fst<-function(data,subpop.vector,subpop.set){
-  #do the Fst calculation of partitioning variance using Euclidean distances.
-  #combined equation sensu Wojcik et al. 2006, can trace to other citations
-  # Numerator: SSB/(k-1)
-  # Denominator: SSB/(k-1) + SSW/(n-k)
-  #SSW divided by n-k according to Pstat package function. Reason related to df?
-  pd<-partition.distance(data,subpop.vector,subpop.set)
-  V.among<-pd$SSB/(pd$k-1)
-  V.within<-pd$SSW/(pd$n-pd$k)
-  fst<-V.among/(V.among + V.within)
-  return(fst)
-}
+# #EXAMPLE
+# #INPUT DATA
+# 
+# #From mixed model, partition of variation for quantitative trait
+# Va<-1.03 #additive genetic variance within populations, includes the heritability tweaks
+# Vpop<-0.9133 #additive variance between populations
+# df.within<-70 #is this 81 - 10 - 1? Equivalent to n - k - 1
+# df.pop<-9 #10 populations - 1? Equivalent to k-1
+# QST<-0.3071671 #the observed Qst value, won't get used until near end, for p-value and plotting
+# 
+# #From microsatellite data
+# Global.Fst<-0.051
+# fst<-c(0.008,0.081,0.045,0.079,0.036) #vector of Fst values (for each loci)
+# n.loci<-5 #number of loci
 
-# # Old Pst functions -------
-# group.means<-function(sample.morph, subpop.choice, subpop.vector){
-#   temp.match<-which(subpop.vector==subpop.choice) #find only the individuals in the subpopulation
-#   subpop.means<-sample.morph[temp.match,] %>% #take morphology from those individuals
-#     as.matrix(.,nrow=length(temp.match)) %>% #make sure it stays in matrix format (for unidimensional measures)
-#     colMeans
-#   return(subpop.means)
+#SIMULATION
+#Simulating distribution of Qst-Fst for a neutral trait
+
+# Fst.Qst<-function(Va,df.within,Global.Fst,df.pop){
+#   Va.hat<-Va/df.within*rchisq(1,df=df.within)
+#   Vpop<-2*Global.Fst*Va/(1-Global.Fst)
+#   Vpop.hat<-Vpop/df.pop*rchisq(1,df.pop)
+#   Qst<-Vpop.hat/(Vpop.hat+2*Va.hat)
+#   return(Qst-Global.Fst)
 # }
 # 
-# #calculates SSW, or sum of squared distances between individuals and their group mean
-# dist.individual.subpop<-function(sample.morph, subpop.options, subpop.choice, subpop.vector){
-#   temp.match<-which(subpop.vector==subpop.choice) #find only the individuals in the subpopulation
-#   temp.pop<-sample.morph[temp.match,] %>% #take morphology from those individuals
-#     as.matrix #make sure it stays in matrix format (for unidimensional measures)
-#   temp.pop<-rbind(temp.pop,colMeans(temp.pop)) #add subpop.mean to the end
-#   dist.individual2subpop.mean<-dist(temp.pop,method="euclidean") %>% #calculate distances
-#     as.matrix() %>% #make sure it stays in matrix format so you can pull rows
-#     .[nrow(temp.pop),1:(nrow(temp.pop)-1)] #and take just the last row, which should be distances from mean
-#   return(dist.individual2subpop.mean)
-#   # #comparing to Pst equation:
-#   # #if variance is (dist^2 %>% sum) / (n-1) and then you multiply by (n-1)
-#   # #you are left with (dist^2 %>% sum), where distance is distance of individuals from total mean
-#   # temp.match<-which(critters$population %in% pair)
-#   # temp.pop<-sample.morph[temp.match,] %>% as.matrix %>% rbind(.,grand.mean)
-#   # dist.ig<-dist(temp.pop) %>% as.matrix() %>% .[nrow(temp.pop),1:(nrow(temp.pop)-1)] #%>% .^2 *n.each[i]
-#   # SST<-(dist.ig^2) %>% sum
-#   # SSW2<-SST-SSB #is the same as SSW. This seems good. 
+# sim.Qst.Fst<-NULL
+# for(i in 1:10000){
+#   sim.Qst.Fst[i]<-Fst.Qst(Va,df.within,mean(sample(fst,n.loci,replace=T)),df.pop)
 # }
+
+# #EXAMPLE
+# #RESULTS
+# hist(sim.Qst.Fst) # Distribution of Qst-FSt for simulated neutral trait
 # 
-# #calculates SSB, or sum of squared distances between group means and grand mean (Polly 2007), as well as
-# #pulling dist.individual.subpop to calculate SSW and the n, k variables you need for eq. 1 of Polly 2007
-# partition.distance<-function(sample.morph,subpop.vector,subpop.set){
-#   #shortening step: make object for the vector of possible subpopulations:
-#   pop.options<-unique(subpop.vector)
-#   k<-length(subpop.set) #total number of groups/subpopulations
-#   n<-which(subpop.vector %in% subpop.set) %>% length #total sample size
-#   n.each<-sapply(subpop.set, function(x) which(subpop.vector %in% x) %>% length) #sample size for each group
-#   grand.mean<-sample.morph[which(subpop.vector %in% subpop.set),] %>% as.matrix %>% colMeans #calculate grand mean
-#   #lapply not working, try a for loop instead
-#   subpop.means.pops<-matrix(0, nrow=k, ncol=ncol(sample.morph))
-#   for (i in 1:k){
-#     subpop.means.pops[i,]<-group.means(sample.morph, subpop.set[i], subpop.vector)
-#   }
-#   subpop.means<-rbind(subpop.means.pops,grand.mean) #add grand mean to the bottom of the matrix
-#   dist.group.grand<-dist(subpop.means,method="euclidean") %>% #calculate euclidean distances
-#     as.matrix() %>% #keep in matrix format so you can pull rows
-#     .[nrow(subpop.means),1:(nrow(subpop.means)-1)] #take last row, which should be distances from grand mean
-#   #SSB: sum of squared distances between group means and the grand mean
-#   SSB<-(dist.group.grand^2 * n.each) %>% sum
-#   #SSW: sum of squared distances between individuals and their group mean
-#   SSW<-sapply(subpop.set,function(x) dist.individual.subpop(sample.morph,pop.options,x,subpop.vector)) %>% #get distances
-#     unlist %>% #make into a single vector
-#     .^2 %>% sum #square and sum to get sum of squares. 
-#   result<-list(n,k,SSB,SSW)
-#   names(result)<-c("n","k","SSB","SSW")
-#   return(result)
-# }
+# #P-TEST
+# 1-mean(sim.Qst.Fst<QST-Global.Fst) 
+# #The quantile of the simulated distribution that has more extreme values than the observed value of Qst-Fst
 # 
-# genetic.components.variance<-function(add.gen.proportion,h.squared,n,k,SSB,SSW){
-#   V.among<-add.gen.proportion * SSB/(k-1)
-#   V.within<-h.squared * SSW/(n-k)
-#   result<-list(V.among,V.within)
-#   names(result)<-c("V.among","V.within")
-#   return(result)
-# }
+# #FIGURE
 # 
-# 
-# pst.equation<-function(add.gen.proportion,h.squared,n,k,SSB,SSW){
-#   #do the Pst calculation. 
-#   #combined equation
-#   # Numerator: c * SSB/(k-1)
-#   # Denominator: c * SSB/(k-1) + h.squared  * 2 * SSW/(n-k)
-#   #SSW divided by n-k according to Pstat package function. Reason related to df?
-#   #a form closer to Psts package (but algebraically equivalent) is:
-#   # Numerator: c/h.squared * SSB/(k-1), or V.among
-#   # Denominator: c/h.squared * SSB/(k-1) + 2* SSW/(n-k), or V.among + V.within
-#   V<-genetic.components.variance(add.gen.proportion,h.squared,n,k,SSB,SSW)
-#   pst.est<-V$V.among/(V$V.among + 2 * V$V.within) #identical answer to Pstat, but can now do multidimensional distance!
-#   return(pst.est)
-# }
-# 
-# Pst<-function(sample.morph,add.gen.proportion,h.squared,subpop.vector,subpop.set){
-#   pd<-partition.distance(sample.morph,subpop.vector,subpop.set)
-#   pst<-pst.equation(add.gen.proportion,h.squared,pd[[1]],pd[[2]],pd[[3]],pd[[4]])
-#   return(pst)
-# }
-# 
-# Pst.pairwise<-function(sample.morph,add.gen.proportion,h.squared,subpop.vector){
-#   pop.options<-unique(subpop.vector)
-#   pairwise.pops<-combn(pop.options,2) %>% t
-#   vector.pst<-apply(pairwise.pops,1,function(x) Pst(sample.morph,add.gen.proportion,h.squared,subpop.vector,x))
-#   pw.pst<-matrix(0, nrow = length(pop.options), ncol = length(pop.options), 
-#                  dimnames = list(pop.options,pop.options)) #make empty matrix for pairwise Pst
-#   pw.pst[lower.tri(pw.pst,diag=FALSE)]<-vector.pst #fill in lower triangle
-#   pw.pst<-t(pw.pst) #fill in upper triangle by transposing. Thank you Dave Tang
-#   pw.pst[lower.tri(pw.pst,diag=FALSE)]<-vector.pst #re-fill in lower triangle
-#   return(pw.pst)
-# }
-# # #example
-# # Pst(sample.morph,csh,critters$population,pair)
-# 
-# better Pst notes --------
+# par(mai=c(1,1,0.5,0.5))
+# hist(sim.Qst.Fst,xlab="Qst-Fst",breaks=c(20), las=0,xlim=c(-0.1,QST+0.1),main="Trait name")
+# arrows(QST-Global.Fst,800,QST-Global.Fst,100,length=0.1)
+# #The arrow indicates the observed Qst-Fst
+# Pst notes --------
 # Polly:
 #with a jackknife (leave out one specimen, recalculate)
 # Numerator: (n-k-1)SSB*
@@ -231,4 +137,23 @@ Fst<-function(data,subpop.vector,subpop.set){
 
 #last major difference is where the 2 comes from in denominator. See box 1 of Leinonen et al. 2013
 #comes from how you convert Fst to Qst
-
+# # Checks ----
+# #Just so you can reassure yourself where the hierarchical Fst values are coming from 
+# #This is the Fst for proportion of variance partioned at the level of genetic groups
+# Fst.GG<-hierarchical.fst$F[1,1]
+# 
+# #variance copmonents
+# vcGG<-hierarchical.fst$overall[1]
+# 
+# #how variance components come from by-locus values
+# vGG<-apply(hierarchical.fst$loc,2,sum)[1]
+# vcGG==vGG #should be TRUE
+# 
+# #now calculate the other four
+# vSA<-apply(hierarchical.fst$loc,2,sum)[2]
+# vIN<-apply(hierarchical.fst$loc,2,sum)[3]
+# vER<-apply(hierarchical.fst$loc,2,sum)[4]
+# 
+# #use variance components to calculate Fst for Genetic Groups
+# FGG<-vGG/(vGG + vSA + vIN + vER)
+# FGG==Fst.GG #should be TRUE
