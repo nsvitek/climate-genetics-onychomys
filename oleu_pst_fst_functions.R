@@ -57,57 +57,6 @@ simulate.Pst.Fst<-function(add.gen.proportion,var.comp.within,df.within,df.betwe
   return(Qst.estimated - observed.Fst)
 }
 
-
-# TO BE REMOVED: Lind et al. 2011 code, for reference and checking -------------
-# The example below is written by, and uses data from, Lind MI, PK Ingvarsson, H Johansson, D Hall, and F Johansson. 2010. "Gene flow and selection on phenotypic plasticity in an island system of Rana temporaria." Evolution
-# From Supplementary file 1. R code used for simulating the distribution of Qst-Fst for a neutral trait, and estimating the quantile of the simulated distribution that has more extreme values than the observed value of Qst-Fst. For more information on the theoretical foundations, see Whitlock & Guillaume (2009).
-#  https://doi.org/10.1111/j.1558-5646.2010.01122.x
-
-# #EXAMPLE
-# #INPUT DATA
-# 
-# #From mixed model, partition of variation for quantitative trait
-# Va<-1.03 #additive genetic variance within populations, includes the heritability tweaks
-# Vpop<-0.9133 #additive variance between populations
-# df.within<-70 #is this 81 - 10 - 1? Equivalent to n - k - 1
-# df.pop<-9 #10 populations - 1? Equivalent to k-1
-# QST<-0.3071671 #the observed Qst value, won't get used until near end, for p-value and plotting
-# 
-# #From microsatellite data
-# Global.Fst<-0.051
-# fst<-c(0.008,0.081,0.045,0.079,0.036) #vector of Fst values (for each loci)
-# n.loci<-5 #number of loci
-
-#SIMULATION
-#Simulating distribution of Qst-Fst for a neutral trait
-
-# Fst.Qst<-function(Va,df.within,Global.Fst,df.pop){
-#   Va.hat<-Va/df.within*rchisq(1,df=df.within)
-#   Vpop<-2*Global.Fst*Va/(1-Global.Fst)
-#   Vpop.hat<-Vpop/df.pop*rchisq(1,df.pop)
-#   Qst<-Vpop.hat/(Vpop.hat+2*Va.hat)
-#   return(Qst-Global.Fst)
-# }
-# 
-# sim.Qst.Fst<-NULL
-# for(i in 1:10000){
-#   sim.Qst.Fst[i]<-Fst.Qst(Va,df.within,mean(sample(fst,n.loci,replace=T)),df.pop)
-# }
-
-# #EXAMPLE
-# #RESULTS
-# hist(sim.Qst.Fst) # Distribution of Qst-FSt for simulated neutral trait
-# 
-# #P-TEST
-# 1-mean(sim.Qst.Fst<QST-Global.Fst) 
-# #The quantile of the simulated distribution that has more extreme values than the observed value of Qst-Fst
-# 
-# #FIGURE
-# 
-# par(mai=c(1,1,0.5,0.5))
-# hist(sim.Qst.Fst,xlab="Qst-Fst",breaks=c(20), las=0,xlim=c(-0.1,QST+0.1),main="Trait name")
-# arrows(QST-Global.Fst,800,QST-Global.Fst,100,length=0.1)
-# #The arrow indicates the observed Qst-Fst
 # Pst notes --------
 # Polly:
 #with a jackknife (leave out one specimen, recalculate)

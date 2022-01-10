@@ -2,23 +2,25 @@
 # (based on erinaceomorphs, pseudolandmark placement error seems to have been solved)
 # general approach: calculate repeatability values from those subset, averaging replicates across dataset
 
+#get function errorGM
+source(paste(scriptsdir,"/../porcupine-teeth/calculate_error.R",sep="")) #mostly Pst functions
+
 # create labels ---------
-#label which specimens are repeate crops vs. everything else
-repeated<-critters$filename[which(critters$cropped==3)] 
-label_repeats<-NULL
-for(i in 1:length(label_error)){
-  if (specimen[i] %in% repeated){label_repeats[i]<-specimen[i]}
-  else (label_repeats[i]<-"other")
-}
-label_repeats<-factor(label_repeats)
+#label which specimens are repeat crops vs. everything else
+repeated<-critters$filename[which(critters$cropped==3)] #all specimens repeated this round, post-review
+label_repeats<-specimen %>% factor
+
 
 # shape error ----------
 #replicates in context of total dataset
 PCA_er<-prcomp(molars$m2d[,],scale.=FALSE) #PCA of all surfaces
 testgdf2<-geomorph.data.frame(coords=PCA_er$x[,],specimen=specimen)
 errorANOVA2<-procD.lm(coords~specimen,data=testgdf2,iter=999,RRPP=TRUE) %>% .$aov.table
-mean_rep<-mean(shapemetadata$cropped)
-err_cr2<-error3d(errorANOVA2,mean_rep,f1=1,f2=2)
+mean_rep<-2
+err_cr2<-errorGM(errorANOVA2,2,f1=1,f2=2) #2=#replicates, each one cropped twice
+
+#get % data explained by usable PCs
+summary(PCA_er)
 
 # plot shape error -------
 jpeg(filename=paste("error_crop_pca_all.jpg",sep=""))
@@ -27,7 +29,7 @@ title(paste("Cropping Repeatability =", round(err_cr2$repeatability,3)))
 dev.off()
 
 jpeg(filename=paste("error_crop_by_pc.jpg",sep=""))
-repeatPCs_result<-find_repeatablePCs(PCA_er$x,specimen,rep=mean_rep) #due to cropping error
+repeatPCs_result<-find_repeatablePCs(PCA_er$x,specimen,rep=2) #due to cropping error
 plot(repeatPCs_result,xlab="principal components")
 lines(repeatPCs_result)
 abline(h=0.90,col="red",lty=2)

@@ -47,8 +47,8 @@ gen_path_name<-paste('/radseq_analysis/populations.r',mdat,sep="") #for reading 
 
 # phenotype option -------
 #Phenotype as pseudolandmarks or PCs?
-phenotype.option <- "points"
-# phenotype.option <- "PCs"
+# phenotype.option <- "points"
+phenotype.option <- "PCs"
 
 # read in raw metadata ------
 setwd(paste(datadir,"/output",sep=""))
@@ -183,7 +183,7 @@ write.csv(metadata,"metadata.csv")
 #phenotype has options
 if (phenotype.option == "points") {
   mor.block<-phenotype
-  setwd(paste(datadir,"/output/shape_point",sep=""))
+  setwd(paste(datadir,"/output_postreview/shape_point",sep=""))
   #format: make sure row names are in there
   rownames(mor.block)<-metadata$filename
   #write these blocks to files
@@ -191,8 +191,8 @@ if (phenotype.option == "points") {
 }
 
 if (phenotype.option == "PCs")    {
-  mor.block<-PCA.phenotype$x[,c(1:12)]
-  setwd(paste(datadir,"/output/shape_pc",sep=""))
+  mor.block<-PCA.phenotype$x[,c(1:13)]
+  setwd(paste(datadir,"/output_postreview/shape_pc",sep=""))
   #format: make sure row names are in there
   rownames(mor.block)<-metadata$filename
   #write these blocks to files

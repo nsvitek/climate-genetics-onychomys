@@ -35,15 +35,20 @@ global.stat.gg<-wc(x.df.gg)
 global.fst.boot<-boot.vc(levels=x.df[,1], loci=x.df[,-1], nboot = resample)
 global.fst.boot.gg<-boot.vc(levels=x.df.gg[,1], loci=x.df.gg[,-1], nboot = resample)
 
-#note: If you want to check to make sure the hierarchical Fst is working the way you want,
-#look at the individual components of variance
-hierarchical.fst<-varcomp.glob(data.frame(metadata$`Genetic Group`,metadata$`Sampling Area`),x.df[,-1])
-
 #write using format FST	STRATA CI_LOW	CI_HIGH , matching assigner results as closely as possible
 sample.area<-c(global.stat$FST,"Sample.Area",global.fst.boot$ci[1,2],global.fst.boot$ci[3,2])
 genetic.group<-c(global.stat.gg$FST,"Genetic.Group",global.fst.boot.gg$ci[1,2],global.fst.boot.gg$ci[3,2])
 results.global<-rbind(sample.area,genetic.group)
 colnames(results.global)<-c("FST","STRATA","CI_LOW","CI_HIGH")
+
+# hierarchical Fst [Post-Review] -----
+#note: If you want to check to make sure the hierarchical Fst is working the way you want,
+#look at the individual components of variance
+hierarchical.fst<-varcomp.glob(data.frame(metadata$`Genetic Group`,metadata$`Sampling Area`),x.df[,-1])
+
+#write the hierarchical Fst data. All of it so that you can get Fst values for each locus as well as any other numbers
+#you might want to use to modify the hierarchy later. 
+saveRDS(hierarchical.fst,paste(datadir,gen_path_name,'/hierarchical.fst.rds',sep="") )
 
 # mean pairwise Fst ----------------- 
 #for sampling areas
@@ -83,10 +88,7 @@ write.table(dist.pop,paste(datadir,gen_path_name,'/pairwise.fst.tsv',sep=""),
 write.table(dist.gg,paste(datadir,gen_path_name,'/pairwise.fst.geneticgroups.tsv',sep=""),
             quote=FALSE, sep="  ",row.names=FALSE)
 
-#write the hierarchical Fst data. All of it so that you can get Fst values for each locus as well as any other numbers
-#you might want to use to modify the hierarchy later. 
-saveRDS(hierarchical.fst,paste(datadir,gen_path_name,'/hierarchical.fst.rds',sep="") )
-# hierarchical Fst -----
+
 
 
 

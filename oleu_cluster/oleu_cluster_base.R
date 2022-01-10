@@ -23,6 +23,8 @@ library(inlmisc,lib.loc="/gpfs/home/nvitek/R_packages") #for bright Paul Tol col
 source("oleu_pst_fst_functions.R") #mostly Pst functions
 source("MMRR.R") #MMRR functions
 
+#number of resamples
+resample<-1000
 # read in raw metadata ------
 metadata<-read.csv("metadata.csv")
 # create more readable labels for plotting -------
@@ -74,6 +76,7 @@ if (phenotype.option == "PCs")    {
   mor.block<-read.csv(paste(outputdir.top,"/mor.block.csv",sep=""),row.names=1)
 }
 
+print("Data read into R.")
 # genetic data: block ---------- 
 #control for missing data level
 outputdir.mid<-paste(outputdir.top,"/r.",mdat,sep="")
@@ -83,6 +86,30 @@ outputdir.choice<-outputdir.mid
 # Pst-Fst --------------
 outputdir.choice<-outputdir.mid
 
+#Pst variables
+# h2.levels<-seq(from=0.1, to=0.9, by=0.1)
+# h.squared<-h2.levels[5] #set at 0.5 for code development
+# add.gen.proportion<-0.25 #c, assumed additive genetic proportion of differences between populations
+#the idea from Brommer 2011 is that any time c > h.squared your estimate is anti-conservative, especially if Pst>Fst
+#so you might want to start with the null, c = h.squared
+#but also see what happens when you alter both sides of the assumption -- plot as a surface? 
+#try with the starting settings chosen above
+
+print("started the Pst-Fst loop.")
+source(paste(datadir,"/oleu_pst_fst.R",sep=""))
+
+print("completed the Pst-Fst loops.")
+# MMRR: pairwise distances between individuals-----
+#see note below, OMNH-52913, MSB-66182 need removal: too much missing genetic data
+sadness<-c("OMNH-52913","MSB-66182")
+# mor.block<-mor.block[-which(row.names(mor.block) %in% sadness),]
+# env.block<-env.block[-which(row.names(env.block) %in% sadness),]
+# geo.block<-geo.block[-which(row.names(geo.block) %in% sadness),]
+# metadata<-metadata[-which(metadata$filename %in% sadness),]
+snps<-snps[-which(rownames(snps) %in% sadness),]
+# genetic block of data
+gen.block<-snps
+
 #make fst.pairwise.wc
 pops<-unique(c(levels(factor(pop.combo.wc$POP1)),levels(factor(pop.combo.wc$POP2))))
 n.pops<-length(pops)
@@ -91,52 +118,7 @@ i <- match(pop.combo.wc$POP1, pops)
 j <- match(pop.combo.wc$POP2, pops)
 fst.pairwise.wc[cbind(i,j)] <- fst.pairwise.wc[cbind(j,i)] <- pop.combo.wc$FST
 
-#Pst variables
-h2.levels<-seq(from=0.1, to=0.9, by=0.1)
-h.squared<-h2.levels[5] #set at 0.5 for code development
-add.gen.proportion<-0.25 #c, assumed additive genetic proportion of differences between populations
-#the idea from Brommer 2011 is that any time c > h.squared your estimate is anti-conservative, especially if Pst>Fst
-#so you might want to start with the null, c = h.squared
-#but also see what happens when you alter both sides of the assumption -- plot as a surface? 
-#try with the starting settings chosen above
-source(paste(datadir,"/oleu_pst_fst.R",sep=""))
-
-#try measuring sensitivity to heritability
-add.gen.proportion<-0.5 #c, assumed additive genetic proportion of differences between populations
-Pst.accumulated<-NULL
-for (i in 1:length(h2.levels)){
-  h.squared<-h2.levels[i]
-  print("started the Pst-Fst loop")
-  source("oleu_pst_fst.R")
-  sink()
-  Pst.accumulated<-c(Pst.accumulated,Pst.observed-fst.mean.wc)
-}
-sink()
-print("finished the Pst-Fst loop")
-
-# Summary Pst-Fst Figure
-# conference plot
-#set these numers to be the calculated Pst values for different H2 values
-Psts<-data.frame(PST = Pst.accumulated, H2 = factor(h2.levels))
-plot4pst<-data.frame(PST = PstFst.distribution.WC)
-plot5<-ggplot(data=Psts, aes(x=PST)) +
-  geom_histogram(data=plot4pst,aes(x=plot4pst$PST)) +
-  geom_segment(aes(x=PST,xend=PST,y=0,yend=100,color=H2), size=2) +
-  xlab("PST - FST") + xlim(range(c(Psts$PST,plot4pst$PST)))
-ggsave(paste(outputdir.choice,"/PstFst_summary_r",mdat,"_h",h.squared,"_agp",add.gen.proportion,"_",phenotype.option,".pdf",sep=""), 
-       plot5, device = pdf, width = 6, height = 4)
-
-# MMRR: pairwise distances between individuals-----
-#see note below, OMNH-52913, MSB-66182 need removal: too much missing genetic data
-sadness<-c("OMNH-52913","MSB-66182")
-mor.block<-mor.block[-which(row.names(mor.block) %in% sadness),]
-env.block<-env.block[-which(row.names(env.block) %in% sadness),]
-geo.block<-geo.block[-which(row.names(geo.block) %in% sadness),]
-# metadata<-metadata[-which(metadata$filename %in% sadness),]
-snps<-snps[-which(rownames(snps) %in% sadness),]
-# genetic block of data
-gen.block<-snps
-
+print("Started the distance analyses.")
 source(paste(datadir,"/oleu_distances.R",sep=""))
 sink()
 

@@ -24,7 +24,9 @@ freeze<-ls()
 # aov(data=linear_metadata[which(linear_metadata$gengroup!="wb"),], m1.proportion~gengroup) %>% summary
 
 # read shape coordinate data -----
-shapedir<-"morphology/oleu_crop4x_191231_1024" #no cs
+# shapedir<-"morphology/oleu_crop4x_191231_1024" #no cs
+shapedir<-"morphology/ony_DE_1024_220103" #no cs, post-review error output
+
 
 #read in pseudolandmark data
 molars<-read.morphologika(paste(datadir,shapedir,
@@ -37,17 +39,26 @@ label_error<-dimnames(molars$scaled)[[3]] %>% strsplit(.,split="[_-]")
 specimen<-crop<-NULL
 for (i in 1:length(label_error)){
   specimen[i]<-paste(label_error[[i]][1],label_error[[i]][2],sep="-")
-  crop[i]<-label_error[[i]][6]
+  crop[i]<-label_error[[i]][5]
 }
 
-shapes<-molars$m2d[which(crop==1),]
+#take averages of replicate shapes
+avg.shapes<-matrix(NA, nrow=nrow(molars$m2d)/2,ncol=ncol(molars$m2d))
+#uses an inelegant for-loop, but gets the job done.
+for (i in 1:length(unique(specimen))){
+  pick.pairs<-which(specimen==unique(specimen)[i])
+  avg.shapes[i,]<-colMeans(molars$m2d[pick.pairs,])
+}
+
+# plot3d(arrayspecs(avg.shapes,p=1024,k=3)[,,1]) #check to make sure it worked
+shapes<-avg.shapes
 rownames(shapes)<-specimen[which(crop==1)]
 
 #clean space
 freeze<-c(freeze, "shapes")
 rm(list = setdiff(ls(),freeze))
 # # error -----
-# setwd(paste(datadir,"/output/results_error",sep="")) #move to folder for keeping error-related results
+# setwd(paste(datadir,"/output_postreview/results_error",sep="")) #move to folder for keeping error-related results
 # freeze<-ls() #take a snapshop of objects in environment
 # source(paste(scriptsdir,"/oleu_error.R",sep=""))
 # rm(list = setdiff(ls(),freeze)) #clean up environment, also removes freeze
