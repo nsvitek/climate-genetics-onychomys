@@ -12,6 +12,13 @@ n.loci<-nrow(hierarchical.fst$loc)
 global.Fst.GG<-hierarchical.fst$F[1,1]
 global.Fst.SA<-hierarchical.fst$F[2,2]
 
+#get confidence intervals
+#Step 1 of Whitlock and Guillame 2009: calculate a bootstrap confidence interval for Fst by randomly resampling loci
+bootstrapped.Fst<-matrix(NA, nrow = n.resamples, ncol=2)
+for (i in 1:n.resamples){bootstrapped.Fst[i,]<-resample.Fst(hierarchical.fst$loc,n.loci)}
+quantile(bootstrapped.Fst[,1], c(0.025,0.975)) %>% print()
+quantile(bootstrapped.Fst[,2], c(0.025,0.975)) %>% print()
+
 # Observed Pst values --------
 # Trying a hierarchical ANOVA as recommended by reviewer for submitted L305-307
 #start with a geomorph data frame, assuming mor.block is points, not PCs
