@@ -26,6 +26,24 @@ ggplot(data=PCA.e.2plot,aes(x=PC1,y=PC2, color = `Sampling Area`,shape=`Genetic 
   ylab(paste("PC 2 (",PCA.e.perc[2],"%)",sep=""))
 ggsave("PCA_env.pdf", device = cairo_pdf, width = 8, height = 8,units="cm",dpi=600)
 
+PCAloadings <- data.frame(Variables = rownames(PCA.environment$rotation), PCA.environment$rotation)
+these.vars<-c(4,7,11,14)
+
+ggplot(data=PCA.e.2plot,aes(x=PC1,y=PC2))+
+  geom_segment(data = PCAloadings[these.vars,], 
+               aes(x = 0, y = 0, xend = (PC1*8),
+               yend = (PC2*8)), arrow = arrow(length = unit(1/2, "picas")),
+               color = "black") +
+  geom_point(size=2, aes(color = `Sampling Area`,shape=`Genetic Group`)) +
+  theme_classic() + theme(legend.position="none") +
+  xlab(paste("PC 1 (",PCA.e.perc[1],"%)",sep="")) +
+  ylab(paste("PC 2 (",PCA.e.perc[2],"%)",sep="")) +
+  annotate("text", x = (PCAloadings$PC1[these.vars]*8),
+           y = (PCAloadings$PC2[these.vars]*8),
+             label = PCAloadings$Variables[these.vars])
+ggsave("PCA_env_loadings.pdf", device = cairo_pdf, width = 8, height = 8,units="cm",dpi=600)
+
+
 ggplot(data=PCA.e.2plot,aes(x=PC1,y=PC2, color = `Sampling Area`,shape=`Genetic Group`))+
   geom_point(size=2) 
 ggsave("PCA_legend.pdf", device = cairo_pdf, width = 16, height = 16,units="cm",dpi=300)

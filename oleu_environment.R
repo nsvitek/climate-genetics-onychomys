@@ -7,7 +7,7 @@ geo.block<-enviro.all %>%
 # environmental data -------
 env.block<-enviro.all %>% 
   dplyr::select(-specimen, -decimallatitude, -decimallongitude,
-                -geodeticdatum, -coordinateuncertaintyinmeters)  %>%
+                -geodeticdatum, -coordinateuncertaintyinmeters, -elevation)  %>%
   scale()
 
 #run correlation PCA w/ pre-scaled data 
