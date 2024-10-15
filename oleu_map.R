@@ -47,10 +47,9 @@ US_poly_sp <- map2SpatialPolygons(US,IDs=US.IDs,proj4string=CRS("+proj=longlat +
 US_poly_sp.albers <- spTransform(US_poly_sp, CRS=CRS(raster.CRS))
 
 # read in physiogeographic provinces -----
-#old, cut this block once working
 phys.prov.raw<-readOGR(dsn = "physio_shp")
 
-phys.prov.raw$
+#old, cut this block once working
 
 # set_RGEOS_CheckValidity(phys.prov.raw)
 # #now only want province level
